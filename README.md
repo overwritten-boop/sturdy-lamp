@@ -23,3 +23,4 @@ The mirror function flips pixels to the opposite position on the image, giving t
 <h4>Output</h4>
 The mirror function returns values the same way the grayscale and inverter functions do, either a BufferedImage object or written directly to the filepath provided.
 <h1>General documentation</h1>
+This library is split into two sections, automatic read-write, and regular. The automatic read-write(marked arw) takes a filepath(String) as an input and automatically writes the finished image to the filepath. The regular(not denoted) functions take a BufferedImage object in and return the finished image as a BufferedImage object.

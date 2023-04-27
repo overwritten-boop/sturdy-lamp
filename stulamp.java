@@ -3,7 +3,7 @@ import java.io.File;
 
 import javax.imageio.ImageIO;
 
-class imagepro {
+class stulamp{
 	static BufferedImage read(String path){
 		//initializing the return image and file to read
 		BufferedImage img = null;
@@ -40,9 +40,7 @@ class imagepro {
 	}
 	static int rgbin(int r, int g, int b){
 		int p = 0;
-		p = p & r;
-		p = p<<8 & g;
-		p = p<<8 & b;
+		p = (r << 16) | (g << 8) | b;
 		return p;
 	}
 
@@ -51,135 +49,51 @@ class imagepro {
 	static void arwgrayscale(String path){
 		//reads the image
 		BufferedImage img = read(path);
-		
-		//creates a greyscale image of an image
-		//gets the height and width of the image
-		int height = img.getHeight();
-		int width = img.getWidth();
-		
-		for(int x = 0; x < width; x++){
-			for(int y = 0; y < height; y++){
-				
-				//gets the rgb value at (X, Y)
-				int p = img.getRGB(x, y);
-				
-				//bitshifts p to get the value of the perameter then uses a bitwise & to get the first 8 digits
-	            int r = (p >> 16) & 0xff;
-	            int g = (p >> 8) & 0xff;
-	            int b = p & 0xff;
-	            
-	            //gets the average rgb values
-	            int avg = (r + g + b) / 3;
-	            
-	            p =(avg << 16) | (avg << 8) | avg;
-	            
-	            img.setRGB(x, y, p);
-	            
-			}
-		}
+		img = grayscale(img);
 		write(img, path);
+	}
+	static void arwgreyscale(String path){
+		arwgrayscale(path);
 	}
 	
 	//color inverter
 	static void arwinverter(String path){
-		//reads the image
 		BufferedImage img = read(path);
-		
-		//gets inverted colors for a colored image
-		int height = img.getHeight();
-		int width = img.getWidth();
-		
-		for(int x = 0; x < width; x++){
-			for(int y = 0; y < height; y++){
-				int p = img.getRGB(x, y);
-				
-				//extracts the r, g, and b values
-				int r = (p >> 16) & 0xff;
-				int g = (p >> 8) & 0xff;
-				int b = p & 0xff;
-				
-				//inverts the colors
-				r = 255-r;
-				g = 255-g;
-				b = 255-b;
-				
-				//puts the numbers back into the pixel
-				p =(r << 16) | (g << 8) | b;
-				
-				//puts the pixel back into the image
-				img.setRGB(x, y, p);
-			}
-		}
+		img = inverter(img);
 		write(img, path);
 	}
 
 	//Mirror
 	static void arwmirror(String path){
-		//reads the file at the given path
 		BufferedImage img = read(path);
-		
-		//sets the height and width of the img
-		int height = img.getHeight();
-		int width = img.getWidth();
-		
-		//gets the rgb values from the image
-		BufferedImage newimg = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-		
-		//flips the image
-		for(int lx = 0, rx = width - 1; lx < width; lx++, rx--){
-			for(int y = 0; y < height; y++){
-				int p = img.getRGB(lx, y);	
-				newimg.setRGB(rx, y, p);
-			}
-		}
+		img = mirror(img);
 		write(img, path);
 	}
 
 	//isocolor
-	static void arwiso(String path, int rgb){
-		//takes the path of the image, and the r, g, and b values that should be isolated(as a binary number)
-		//reads the image
+	static void arwisocolor(String path, int rgb){
 		BufferedImage img = read(path);
-		
-		//gets the iso rgb
-		int r = (rgb >> 16) & 0xff;
-		int g = (rgb >> 8) & 0xff;
-		int b = rgb & 0xff;
-		
-		//sets the height and width of the img
-		int height = img.getHeight();
-		int width = img.getWidth();
-		
-		//gets the rgb values from the image
-		BufferedImage newimg = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-		
-		//loops for each pixel
-		for(int x = 0; x < width; x++){
-			for(int y = 0; y < height; y++){
-				//gets the pixel rgb values
-				int p = img.getRGB(x, y);
-				
-				//gets the individual values
-				int imgr = (p >> 16) & 0xff;
-				int imgg = (p >> 8) & 0xff;
-				int imgb = p & 0xff;
-				
-				if(!(r == imgr && g == imgg && b == imgb)){
-					imgr = 000;
-					imgg = 000;
-					imgb = 000;
-					p = (imgr << 16) | (imgg << 8) | imgb;
-				}
-				img.setRGB(x, y, p);
-			}
-		}
-		
+		img = isocolor(img, rgb);
+		write(img, path);
+	}
+	static void arwisocolor(String path, int r, int g, int b){
+		int rgb = rgbin(r, g, b);
+		BufferedImage img = read(path);
+		img = isocolor(img, rgb);
+		write(img, path);
+	}
+	
+	//sepia filter
+	static void arwsepia(String path){
+		//converts an image to sepia
+		BufferedImage img = read(path);
+		img = sepia(img);
 		write(img, path);
 	}
 	
 //BufferedImage
 	//grayscale
-	public static BufferedImage grayscale(BufferedImage img){
+	static BufferedImage grayscale(BufferedImage img){
 		//creates a greyscale image of an image
 		//gets the height and width of the image
 		int height = img.getHeight();
@@ -208,9 +122,12 @@ class imagepro {
 		
 		return img;
 	}
+	static BufferedImage greyscale(BufferedImage img){
+		return grayscale(img);
+	}
 	
 	//color inverter
-	public static BufferedImage inverter(BufferedImage img){
+	static BufferedImage inverter(BufferedImage img){
 		//gets inverted colors for a colored image
 		int height = img.getHeight();
 		int width = img.getWidth();
@@ -240,7 +157,7 @@ class imagepro {
 	}
 	
 	//mirror
-	public static BufferedImage mirror(BufferedImage img){
+	static BufferedImage mirror(BufferedImage img){
 		//sets the height and width of the image
 		int height = img.getHeight();
 		int width = img.getWidth();
@@ -259,7 +176,7 @@ class imagepro {
 	}
 	
 	//isolates a color
-	public static BufferedImage isocolor(BufferedImage img, int rgb){
+	static BufferedImage isocolor(BufferedImage img, int rgb){
 
 		//gets the iso rgb
 		int r = (rgb >> 16) & 0xff;
@@ -269,9 +186,6 @@ class imagepro {
 		//sets the height and width of the img
 		int height = img.getHeight();
 		int width = img.getWidth();
-		
-		//gets the rgb values from the image
-		BufferedImage newimg = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 		
 		//loops for each pixel
 		for(int x = 0; x < width; x++){
@@ -291,6 +205,52 @@ class imagepro {
 					p = (imgr << 16) | (imgg << 8) | imgb;
 				}
 				img.setRGB(x, y, p);
+			}
+		}
+		return img;
+	}
+	static BufferedImage isocolor(BufferedImage img, int r, int g, int b){
+		return isocolor(img, rgbin(r,g,b));
+	}
+	
+	//adds a sepia filter
+	static BufferedImage sepia(BufferedImage img){
+		//gets the dimesions of the image
+		int width = img.getWidth();
+		int height = img.getHeight();
+		
+		//loops for pixels in the image
+		for(int x = 0; x < width; x++){
+			for(int y = 0; y < height; y++){
+				int p = img.getRGB(x, y);
+				
+				//isolates the r, g, and b values
+				int a = (p >> 24) & 0xff;
+				int r = (p >> 16) & 0xff;
+				int g = (p >> 8) & 0xff;
+				int b = p & 0xff;
+				
+				//magic sepia numbers
+				int Rpost = (int) (0.393*r + 0.769*g + 0.189*b);
+				int Gpost = (int) (0.349*r + 0.686*g + 0.168*b);
+				int Bpost = (int) (0.272*r + 0.534*g + 0.131*b);
+				
+				//maxes colors
+				if(Rpost > 255){
+					Rpost = 255;
+				}
+				if(Gpost > 255){
+					Gpost = 255;
+				}
+				if(Bpost > 255){
+					Bpost = 255;
+				}
+				
+				//puts the values back into the pixel
+				p = (a << 24) | (Rpost << 16) | (Gpost << 8) | Bpost;
+				
+				//sets the pixel into the image
+				img.setRGB(x, y, p);				
 			}
 		}
 		return img;

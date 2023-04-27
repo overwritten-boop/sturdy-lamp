@@ -40,9 +40,9 @@ class imagepro {
 	}
 	static int rgbin(int r, int g, int b){
 		int p = 0;
-		p = p | r;
-		p = p<<8 | g;
-		p = p<<8 | b;
+		p = p & r;
+		p = p<<8 & g;
+		p = p<<8 & b;
 		return p;
 	}
 

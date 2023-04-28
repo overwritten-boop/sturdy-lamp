@@ -83,6 +83,18 @@ class stulamp{
 		write(img, path);
 	}
 	
+	//isoblob
+	static void arwisoblob(String path, int rgb, int tolerance){
+		BufferedImage img = read(path);
+		img = isoblob(img, rgb, tolerance);
+		write(img, path);
+	}
+	static void arwisoblob(String path, int r, int g, int b, int tolerance){
+		BufferedImage img = read(path);
+		img = isoblob(img, rgbin(r,g,b), tolerance);
+		write(img, path);
+	}
+	
 	//sepia filter
 	static void arwsepia(String path){
 		//converts an image to sepia
@@ -213,6 +225,75 @@ class stulamp{
 		return isocolor(img, rgbin(r,g,b));
 	}
 	
+	//isolates a color within a tolerance
+	static BufferedImage isoblob(BufferedImage img, int rgb, int tolerance){
+		//gets the dimesions of the image
+		int width = img.getWidth();
+		int height = img.getHeight();
+		
+		//gets the iso rgb
+		int r = (rgb >> 16) & 0xff;
+		int g = (rgb >> 8) & 0xff;
+		int b = rgb & 0xff;
+		
+		int ruplim = r+tolerance;
+		if(ruplim > 255){
+			ruplim = 255;
+		}
+		System.out.println(ruplim);
+		
+		int guplim = g+tolerance;
+		if(guplim > 255){
+			guplim = 255;
+		}
+		System.out.println(guplim);
+		
+		int buplim = b+tolerance;
+		if(buplim > 255){
+			buplim = 255;
+		}
+		System.out.println(buplim);
+		
+		int rbotlim = r - tolerance;
+		if(rbotlim < 0){
+			rbotlim = 0;
+		}
+		System.out.println(rbotlim);
+		
+		int gbotlim = g - tolerance;
+		if(gbotlim < 0){
+			gbotlim = 0;
+		}
+		System.out.println(gbotlim);
+		
+		int bbotlim = b - tolerance;
+		if(bbotlim < 0){
+			bbotlim = 0;
+		}
+		System.out.println(gbotlim);
+		
+		for(int x = 0; x < width; x++){
+			for(int y = 0; y < height; y++){
+				int p = img.getRGB(x, y);
+				
+				r = (p >> 16) & 0xff;
+				g = (p >> 8) & 0xff;
+				b = p & 0xff;
+				if(!(ruplim >= r && rbotlim <= r) || !(guplim >= g && gbotlim <= g) || !(buplim >= b && bbotlim <= b)){
+					r = 0;
+					g = 0;
+					b = 0;
+					p = (r << 16) | (g << 8) | b;
+				}
+				img.setRGB(x, y, p);
+			}
+		}
+		return img;
+	}
+	static BufferedImage isoblob(BufferedImage img, int r, int g, int b, int tolerance){
+		return isoblob(img, rgbin(r, g, b), tolerance);
+	}
+	
 	//adds a sepia filter
 	static BufferedImage sepia(BufferedImage img){
 		//gets the dimesions of the image
@@ -255,4 +336,5 @@ class stulamp{
 		}
 		return img;
 	}
+
 }

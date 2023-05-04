@@ -22,6 +22,7 @@ class stulamp{
 				
 		return img;
 	}
+	
 	static void write(BufferedImage img, String path){
 		//the file object that is used for setting the image
 		File f = null;
@@ -38,12 +39,14 @@ class stulamp{
 			System.out.println(e);
 		}
 	}
+	
 	static int rgbin(int r, int g, int b){
 		int p = 0;
 		p = (r << 16) | (g << 8) | b;
 		return p;
 	}
 
+	
 //autoreadwrite
 	//grayscale
 	static void arwgrayscale(String path){
@@ -83,13 +86,29 @@ class stulamp{
 		write(img, path);
 	}
 	
-	//sepia filter
-	static void arwsepia(String path){
-		//converts an image to sepia
+	//isoblob
+	static void arwisolrange(String path, int rgb, int tolerance){
 		BufferedImage img = read(path);
-		img = sepia(img);
+		img = isolrange(img, rgb, tolerance);
 		write(img, path);
 	}
+	static void arwisolrange(String path, int r, int g, int b, int tolerance){
+		BufferedImage img = read(path);
+		img = isolrange(img, rgbin(r,g,b), tolerance);
+		write(img, path);
+	}
+
+	//means the rgb
+	static int armeanrgb(String path){
+		return meanrgb(read(path));
+	}
+	
+	//meanstdev
+	static int armeanstdev(String path){
+		BufferedImage img = read(path);
+		return meanstdev(img);
+	}
+	
 	
 //BufferedImage
 	//grayscale
@@ -213,46 +232,141 @@ class stulamp{
 		return isocolor(img, rgbin(r,g,b));
 	}
 	
-	//adds a sepia filter
-	static BufferedImage sepia(BufferedImage img){
+	//isolates a color within a tolerance
+	static BufferedImage isolrange(BufferedImage img, int rgb, int tolerance){
 		//gets the dimesions of the image
 		int width = img.getWidth();
 		int height = img.getHeight();
 		
-		//loops for pixels in the image
+		//gets the iso rgb
+		int r = (rgb >> 16) & 0xff;
+		int g = (rgb >> 8) & 0xff;
+		int b = rgb & 0xff;
+		
+		int rtol = (tolerance >> 16) & 0xff;
+		int gtol = (tolerance >> 16) & 0xff;
+		int btol = tolerance & 0xff;
+		
+		int ruplim = r+rtol;
+		if(ruplim > 255){
+			ruplim = 255;
+		}
+		
+		int guplim = g+gtol;
+		if(guplim > 255){
+			guplim = 255;
+		}
+		
+		int buplim = b+btol;
+		if(buplim > 255){
+			buplim = 255;
+		}
+		
+		int rbotlim = r - rtol;
+		if(rbotlim < 0){
+			rbotlim = 0;
+		}
+		
+		int gbotlim = g - gtol;
+		if(gbotlim < 0){
+			gbotlim = 0;
+		}
+		
+		int bbotlim = b - btol;
+		if(bbotlim < 0){
+			bbotlim = 0;
+		}
+		
 		for(int x = 0; x < width; x++){
 			for(int y = 0; y < height; y++){
 				int p = img.getRGB(x, y);
 				
-				//isolates the r, g, and b values
-				int a = (p >> 24) & 0xff;
-				int r = (p >> 16) & 0xff;
-				int g = (p >> 8) & 0xff;
-				int b = p & 0xff;
-				
-				//magic sepia numbers
-				int Rpost = (int) (0.393*r + 0.769*g + 0.189*b);
-				int Gpost = (int) (0.349*r + 0.686*g + 0.168*b);
-				int Bpost = (int) (0.272*r + 0.534*g + 0.131*b);
-				
-				//maxes colors
-				if(Rpost > 255){
-					Rpost = 255;
+				r = (p >> 16) & 0xff;
+				g = (p >> 8) & 0xff;
+				b = p & 0xff;
+				if((ruplim >= r && rbotlim <= r) && (guplim >= g && gbotlim <= g) && (buplim >= b && bbotlim <= b)){
+					p = (r << 16) | (g << 8) | b;
+					img.setRGB(x, y, p);
 				}
-				if(Gpost > 255){
-					Gpost = 255;
-				}
-				if(Bpost > 255){
-					Bpost = 255;
-				}
-				
-				//puts the values back into the pixel
-				p = (a << 24) | (Rpost << 16) | (Gpost << 8) | Bpost;
-				
-				//sets the pixel into the image
-				img.setRGB(x, y, p);				
+					
 			}
 		}
 		return img;
 	}
+	static BufferedImage isolrange(BufferedImage img, int r, int g, int b, int tolerance){
+		return isolrange(img, rgbin(r, g, b), tolerance);
+	}
+	
+	//gets the mean rgb value in the image
+	static int meanrgb(BufferedImage img){
+		int sumr = 0;
+		int sumg = 0;
+		int sumb = 0;
+		
+		//defines the length and width
+		int width = img.getWidth();
+		int height = img.getHeight();
+		int p = 0;
+		
+		for(int x = 0; x < width; x++){
+			for(int y = 0; y < height; y++){
+				p = img.getRGB(x, y);
+				
+				int r = (p >> 16) & 0xff;
+	            int g = (p >> 8) & 0xff;
+	            int b = p & 0xff;
+				
+				sumr += r;
+				sumg += g;
+				sumb += b;
+			}
+		}
+		sumr /= (width*height);
+		sumg /= (width*height);
+		sumb /= (width*height);
+		
+		return rgbin(sumr, sumg, sumb);
+	}
+	
+	//gets the standard deviation of the colors in the image
+	static int meanstdev(BufferedImage img){
+		int width = img.getWidth();
+		int height = img.getHeight();
+		
+		int mean = meanrgb(img);
+		
+		int meanr = (mean >> 16) & 0xff;
+		int meang = (mean >> 8) & 0xff;
+		int meanb = mean & 0xff;
+		
+		int sumr = 0;
+		int sumg = 0;
+		int sumb = 0;
+		
+		for(int x = 0; x < width; x++){
+			for(int y = 0; y < height; y++){
+				
+				int p = img.getRGB(x, y);
+				
+				int r = (p >> 16) & 0xff;
+				int g = (p >> 8) & 0xff;
+				int b = p & 0xff;
+				
+				sumr += Math.pow((r - meanr), 2);
+				sumg += Math.pow((g - meang), 2);
+				sumb += Math.pow((b - meanb), 2);
+			}
+		}
+		sumr /= (width*height);
+		sumg /= (width*height);
+		sumb /= (width*height);
+		
+		int stdr = (int)Math.sqrt(sumr);
+		int stdg = (int)Math.sqrt(sumg);
+		int stdb = (int)Math.sqrt(sumb);
+		
+		return rgbin(stdr, stdg, stdb);		
+	}
+
+	
 }

@@ -1,5 +1,3 @@
-import java.awt.Color;
-import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 
@@ -288,7 +286,6 @@ class stulamp{
 				b = p & 0xff;
 				if((ruplim >= r && rbotlim <= r) && (guplim >= g && gbotlim <= g) && (buplim >= b && bbotlim <= b)){
 					p = (r << 16) | (g << 8) | b;
-					System.out.println(p);
 					img.setRGB(x, y, p);
 				}
 					

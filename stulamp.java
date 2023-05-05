@@ -109,6 +109,11 @@ class stulamp{
 		return meanstdev(img);
 	}
 	
+	static void arwblur(String path, int factor){
+		BufferedImage img = read(path);
+		img = blur(img, factor);
+		write(img, path);
+	}
 	
 //BufferedImage
 	//grayscale
@@ -368,5 +373,52 @@ class stulamp{
 		return rgbin(stdr, stdg, stdb);		
 	}
 
-	
+	//blur
+	static BufferedImage blur(BufferedImage img, int factor){
+		//gets the dimesions of the image
+		int width = img.getWidth();
+		int height = img.getHeight();
+		
+		int piep = factor;
+		
+		//runs the operation multiple times to blur the whole image
+		for(int i = 2; i < factor; i+=factor/5){
+			
+			//for each piep pixel split
+			for(int splitx = 0; splitx < (int)width/piep; splitx++){
+				for(int splity = 0; splity < (int)height/piep; splity++){
+					
+					int sumr = 0;
+					int sumg = 0;
+					int sumb = 0;
+					
+					for(int x = 0; x < piep; x++){
+						for(int y = 0; y < piep; y++){
+							int p = img.getRGB(piep*splitx + x, piep*splity + y);
+							
+							int r = p >> 16 & 0xff;
+							int g = p >> 8  & 0xff;
+							int b = p       & 0xff;
+							
+							sumr += r;
+							sumg += g;
+							sumb += b;
+						}
+					}
+					sumr /= piep*piep;
+					sumg /= piep*piep;
+					sumb /= piep*piep;
+					
+					int p = sumr << 16 | sumg << 8 | sumb;
+					
+					for(int x = 0; x < piep; x++){
+						for(int y = 0; y < piep; y++){
+							img.setRGB((piep*splitx)+x, (piep*splity)+y, p);
+						}
+					}
+				}
+			}
+		}
+		return img;
+	}
 }
